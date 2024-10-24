@@ -21,6 +21,8 @@ final class AnimationsViewController: UIViewController {
         static let timecodeInitial = "0:00"
     }
     
+    var currentAnimationIndex: Int = 0
+    
     let animationView: LottieAnimationView = {
         let view = LottieAnimationView()
         view.contentMode = .scaleAspectFit
@@ -30,22 +32,92 @@ final class AnimationsViewController: UIViewController {
         return view
     }()
     
+    private lazy var createConfiguredButton: (UIImage, CGFloat) -> UIButton = { image, pointSize in
+        var config = UIButton.Configuration.plain()
+        config.image = image
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .bold)
+        config.contentInsets = Constants.buttonInsets
+        
+        let button = UIButton(configuration: config)
+        button.tintColor = .gray
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: Constants.buttonDimension),
+            button.heightAnchor.constraint(equalToConstant: Constants.buttonDimension)
+        ])
+        
+        return button
+    }
+    
+    // MARK: Кнопки
+    
+    private lazy var playPauseButton: UIButton = {
+        let button = createConfiguredButton(.play, Constants.playPausePointSize)
+        button.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var previousButton: UIButton = {
+        let button = createConfiguredButton(.backward, Constants.controlButtonPointSize)
+        button.addTarget(self, action: #selector(showPreviousAnimation), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var nextButton: UIButton = {
+        let button = createConfiguredButton(.forward, Constants.controlButtonPointSize)
+        button.addTarget(self, action: #selector(showNextAnimation), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var controlsContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(previousButton)
+        view.addSubview(playPauseButton)
+        view.addSubview(nextButton)
+        
+        NSLayoutConstraint.activate([
+            previousButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -10),
+            previousButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            playPauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            playPauseButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
+            nextButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 10),
+            nextButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        
+        return view
+    }()
+    
+    private lazy var stackView: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [animationView, controlsContainer])
+        stack.axis = .vertical
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
         setupViews()
-        loadAnimation(at: Constants.initialAnimationIndex, autoPlay: true)
+        loadAnimation(at: Constants.initialAnimationIndex, autoPlay: false)
     }
     
     func setupViews() {
-        view.addSubview(animationView)
+        view.addSubview(stackView)
         
         NSLayoutConstraint.activate([
-            animationView.topAnchor.constraint(equalTo: view.topAnchor),
-            animationView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            animationView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            animationView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            stackView.topAnchor.constraint(equalTo: view.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            animationView.heightAnchor.constraint(equalTo: stackView.heightAnchor, multiplier: 0.6),
+            controlsContainer.heightAnchor.constraint(equalTo: stackView.heightAnchor, multiplier: 0.4)
         ])
     }
     
@@ -58,8 +130,27 @@ final class AnimationsViewController: UIViewController {
         } else {
             animationView.stop()
         }
+        playPauseButton.configuration?.image = autoPlay ? .pause : .play
     }
     
+    @objc func togglePlayPause() {
+        if animationView.isAnimationPlaying {
+            animationView.pause()
+            playPauseButton.configuration?.image = .play
+        } else {
+            animationView.play()
+            playPauseButton.configuration?.image = .pause
+        }
+    }
     
+    @objc func showPreviousAnimation() {
+        currentAnimationIndex = (currentAnimationIndex - 1 + Constants.animationNames.count) % Constants.animationNames.count
+        loadAnimation(at: currentAnimationIndex, autoPlay: animationView.isAnimationPlaying)
+    }
+    
+    @objc func showNextAnimation() {
+        currentAnimationIndex = (currentAnimationIndex + 1) % Constants.animationNames.count
+        loadAnimation(at: currentAnimationIndex, autoPlay: animationView.isAnimationPlaying)
+    }
     
 }
