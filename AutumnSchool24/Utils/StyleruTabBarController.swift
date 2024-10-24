@@ -18,7 +18,7 @@ final class StyleruTabBarController: UITabBarController {
         tabBar.tintColor = .link
         tabBar.isTranslucent = false
         setupVCs()
-        showRegistration()
+//        showRegistration()
     }
     
     override func viewWillAppear(_ animated: Bool) {

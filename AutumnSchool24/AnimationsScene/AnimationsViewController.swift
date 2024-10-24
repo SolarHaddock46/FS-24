@@ -20,4 +20,46 @@ final class AnimationsViewController: UIViewController {
         static let animationInfoStackSpacing: CGFloat = 8
         static let timecodeInitial = "0:00"
     }
+    
+    let animationView: LottieAnimationView = {
+        let view = LottieAnimationView()
+        view.contentMode = .scaleAspectFit
+        view.loopMode = .loop
+        view.backgroundColor = .lightGray
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        view.backgroundColor = .systemBackground
+        setupViews()
+        loadAnimation(at: Constants.initialAnimationIndex, autoPlay: true)
+    }
+    
+    func setupViews() {
+        view.addSubview(animationView)
+        
+        NSLayoutConstraint.activate([
+            animationView.topAnchor.constraint(equalTo: view.topAnchor),
+            animationView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            animationView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            animationView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+    
+    func loadAnimation(at index: Int, autoPlay: Bool) {
+        let animationName = Constants.animationNames[index]
+        animationView.animation = LottieAnimation.named(animationName)
+        
+        if autoPlay {
+            animationView.play()
+        } else {
+            animationView.stop()
+        }
+    }
+    
+    
+    
 }
