@@ -32,6 +32,53 @@ final class AnimationsViewController: UIViewController {
         return view
     }()
     
+    let timecodeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .styleruBold
+        label.textColor = .black
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let animationNameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .styleruSemibold
+        label.textColor = .gray
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private lazy var controlsButtonStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [previousButton, playPauseButton, nextButton])
+        stack.axis = .horizontal
+        stack.spacing = Constants.controlButtonStackSpacing
+        stack.distribution = .equalSpacing
+        return stack
+    }()
+    
+    private lazy var buttonsContainerStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [controlsButtonStack])
+        stack.axis = .vertical
+        stack.spacing = Constants.controlsContainerStackSpacing
+        stack.alignment = .center
+        return stack
+    }()
+    
+    private lazy var animationInfoStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [timecodeLabel, animationNameLabel])
+        stack.axis = .vertical
+        stack.spacing = Constants.animationInfoStackSpacing
+        return stack
+    }()
+    
+    private lazy var verticalStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [animationInfoStack, buttonsContainerStack])
+        stack.axis = .vertical
+        stack.spacing = Constants.verticalStackSpacing
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
+    }()
+    
     private lazy var createConfiguredButton: (UIImage, CGFloat) -> UIButton = { image, pointSize in
         var config = UIButton.Configuration.plain()
         config.image = image
@@ -74,19 +121,11 @@ final class AnimationsViewController: UIViewController {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        view.addSubview(previousButton)
-        view.addSubview(playPauseButton)
-        view.addSubview(nextButton)
+        view.addSubview(verticalStack)
         
         NSLayoutConstraint.activate([
-            previousButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -10),
-            previousButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            playPauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            playPauseButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            nextButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 10),
-            nextButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            verticalStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            verticalStack.topAnchor.constraint(equalTo: view.topAnchor)
         ])
         
         return view
@@ -124,6 +163,8 @@ final class AnimationsViewController: UIViewController {
     func loadAnimation(at index: Int, autoPlay: Bool) {
         let animationName = Constants.animationNames[index]
         animationView.animation = LottieAnimation.named(animationName)
+        animationNameLabel.text = animationName
+        timecodeLabel.text = Constants.timecodeInitial
         
         if autoPlay {
             animationView.play()
